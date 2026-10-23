@@ -1,0 +1,4 @@
+opencv-python>=4.8,<5  # OpenCV 5 removed the HOG people detector
+pillow>=10.0
+numpy>=1.24
+pyserial>=3.5
