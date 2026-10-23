@@ -1,8 +1,11 @@
-from app import esp32_message
+from app import esp32_message, lamps_on
 
-assert esp32_message(0) == "S0000"  # nobody: all off
-assert esp32_message(1) == "S1000"  # 1 person: LED1 (GPIO27)
-assert esp32_message(2) == "S1100"  # 2 people: + LED2 (GPIO26)
-assert esp32_message(3) == "S1111"  # 3 people: + LED3 (GPIO25) + relay (GPIO18)
-assert esp32_message(9) == "S1111"
+assert esp32_message(0, (1, 2, 3)) == "R0"  # nobody: relay off
+assert esp32_message(2, (1, 2, 3)) == "R0"
+assert esp32_message(3, (1, 2, 3)) == "R1"  # level 3 reached: relay on
+assert esp32_message(9, (2, 5, 10)) == "R0"  # levels set in the GUI
+assert esp32_message(10, (2, 5, 10)) == "R1"
+assert lamps_on(0, (1, 2, 3)) == [False, False, False]
+assert lamps_on(2, (1, 2, 3)) == [True, True, False]
+assert lamps_on(7, (2, 5, 10)) == [True, True, False]
 print("ok")

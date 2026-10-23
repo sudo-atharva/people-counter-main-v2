@@ -21,12 +21,18 @@ from esp32_link import Esp32Link, Esp32Panel
 
 VIDEO_W, VIDEO_H = 800, 600
 ESP32_KEEPALIVE = 1.0  # seconds; the ESP32 turns everything off if it hears nothing for 3 s
-ESP32_OFF = "S0000"
+ESP32_OFF = "R0"
+LAMP_COLORS = ["#43a047", "#fdd835", "#e53935"]  # virtual LEDs in the GUI for level 1, 2, 3
 
 
-def esp32_message(count):
-    """S<led1><led2><led3><relay>: LEDs light up one per person; 3+ people adds the relay."""
-    return "S" + "".join(str(int(b)) for b in (count >= 1, count >= 2, count >= 3, count >= 3))
+def lamps_on(count, levels):
+    """Which of the 3 GUI lamps are lit: each turns on once count reaches its level."""
+    return [count >= level for level in levels]
+
+
+def esp32_message(count, levels):
+    """R1 = relay on (count reached level 3), R0 = off."""
+    return "R1" if count >= levels[2] else "R0"
 
 
 class CameraWorker(threading.Thread):
@@ -74,7 +80,7 @@ class CameraWorker(threading.Thread):
 
 
 class PeopleCounterApp:
-    def __init__(self, root, source, backend, port="", limit=5):
+    def __init__(self, root, source, backend, port="", levels=(1, 2, 3)):
         self.root = root
         self.root.title("People Counter")
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -97,8 +103,8 @@ class PeopleCounterApp:
         self.count_var = tk.StringVar(value="0")
         self.peak_var = tk.StringVar(value="Peak: 0")
         self.status_var = tk.StringVar(value="Stopped")
-        self.limit_var = tk.IntVar(value=limit)
-        self.limit = limit
+        self.level_vars = [tk.IntVar(value=level) for level in levels]
+        self.levels = tuple(levels)
         self.port = port
 
         self._build_ui()
@@ -121,11 +127,17 @@ class PeopleCounterApp:
         ttk.Label(side, textvariable=self.peak_var, font=("Helvetica", 12)).pack()
         self.alarm_label = tk.Label(side, text="", font=("Helvetica", 12, "bold"), fg="white")
         self.alarm_label.pack(fill="x", pady=(4, 0))
-        limit_row = ttk.Frame(side)
-        limit_row.pack(fill="x", pady=(4, 16))
-        ttk.Label(limit_row, text="Alarm when more than").pack(side="left")
-        ttk.Spinbox(limit_row, from_=0, to=500, width=5, textvariable=self.limit_var).pack(side="left", padx=4)
-        ttk.Label(limit_row, text="people").pack(side="left")
+        levels_box = ttk.LabelFrame(side, text=" Turn on at (people) ", padding=6)
+        levels_box.pack(fill="x", pady=(4, 16))
+        names = ["LED 1", "LED 2", "LED 3 + relay"]
+        self.lamps = []
+        for row, (name, var) in enumerate(zip(names, self.level_vars)):
+            lamp = tk.Canvas(levels_box, width=30, height=30, highlightthickness=0)
+            lamp.create_oval(3, 3, 27, 27, fill="#555", outline="#333", width=2)
+            lamp.grid(row=row, column=0, padx=(0, 6), pady=2)
+            self.lamps.append(lamp)
+            ttk.Label(levels_box, text=name).grid(row=row, column=1, sticky="w")
+            ttk.Spinbox(levels_box, from_=1, to=500, width=5, textvariable=var).grid(row=row, column=2, padx=4)
 
         ttk.Label(side, text="Camera index or video file:").pack(anchor="w")
         src_row = ttk.Frame(side)
@@ -237,21 +249,23 @@ class PeopleCounterApp:
 
     def update_alarm(self):
         try:
-            limit = int(self.limit_var.get())
+            self.levels = tuple(int(var.get()) for var in self.level_vars)
         except (tk.TclError, ValueError):
-            limit = None  # spinbox being edited
-        if limit is not None:
-            self.limit = limit
-            alarm = self.worker is not None and self.count > limit
-            if alarm and not self.alarm:
-                self.root.bell()
-            self.alarm = alarm
+            pass  # spinbox being edited; keep the last valid levels
+        lit = lamps_on(self.count, self.levels) if self.worker else [False] * 3
+        for lamp, on, color in zip(self.lamps, lit, LAMP_COLORS):
+            lamp.itemconfig(1, fill=color if on else "#555")
+        # Alarm (beep, red count) goes with level 3 + relay.
+        alarm = self.worker is not None and self.count >= self.levels[2]
+        if alarm and not self.alarm:
+            self.root.bell()
+        self.alarm = alarm
         self.count_label.config(fg="#c62828" if self.alarm else "#1a7f37")
         self.alarm_label.config(text="⚠ TOO MANY PEOPLE" if self.alarm else "",
                                 bg="#c62828" if self.alarm else self.root.cget("bg"))
 
         # ESP32: send on every change, and repeat every second so it knows we're alive.
-        message = esp32_message(self.count) if self.worker else ESP32_OFF
+        message = esp32_message(self.count, self.levels) if self.worker else ESP32_OFF
         last_message, last_time = self.esp32_last
         if message != last_message or time.time() - last_time >= ESP32_KEEPALIVE:
             if self.esp32.send(message):
@@ -278,14 +292,15 @@ def main():
     parser.add_argument("--source", default="0", help="camera index (0 = default webcam) or video file")
     parser.add_argument("--detector", choices=["auto", "yolo", "hog"], default="auto")
     parser.add_argument("--port", default="", help="ESP32 serial port to connect at startup, e.g. COM3")
-    parser.add_argument("--limit", type=int, default=5, help="alarm when more than this many people")
+    parser.add_argument("--levels", type=int, nargs=3, default=[1, 2, 3], metavar=("L1", "L2", "L3"),
+                        help="people count that lights GUI lamp 1, 2, 3 (3 also switches the relay + alarm; default 1 2 3)")
     args = parser.parse_args()
 
     pid_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.pid")
     with open(pid_file, "w") as f:
         f.write(str(os.getpid()))  # lets stop.bat find this process
     root = tk.Tk()
-    PeopleCounterApp(root, args.source, args.detector, args.port, args.limit)
+    PeopleCounterApp(root, args.source, args.detector, args.port, args.levels)
     try:
         root.mainloop()
     finally:

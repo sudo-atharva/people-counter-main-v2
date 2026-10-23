@@ -1,68 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="820" height="520" viewBox="0 0 820 520" font-family="Segoe UI, Helvetica, Arial, sans-serif">
-  <rect width="820" height="520" fill="#ffffff"/>
-  <text x="20" y="32" font-size="20" font-weight="700" fill="#222">People Counter: ESP32 + 3 LEDs + relay wiring</text>
-  <text x="20" y="54" font-size="13" fill="#555">1 person = LED1, 2 = LED1+2, 3 or more = LED1+2+3 + relay. The PC app decides; the ESP32 just switches.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="400" viewBox="0 0 820 400" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect width="820" height="400" fill="#ffffff"/>
+  <text x="20" y="32" font-size="20" font-weight="700" fill="#222">People Counter: ESP32 + relay wiring</text>
+  <text x="20" y="54" font-size="13" fill="#555">Relay on when the count reaches level 3 (set in the app). The PC app decides; the ESP32 just switches.</text>
 
   <!-- ESP32 board -->
-  <rect x="40" y="80" width="170" height="380" rx="10" fill="#1f3a5f" stroke="#0f2238" stroke-width="2"/>
-  <rect x="62" y="250" width="70" height="80" rx="4" fill="#c9ced6" stroke="#8a919c"/>
-  <text x="97" y="286" font-size="14" text-anchor="middle" fill="#1f3a5f" font-weight="700">ESP32</text>
-  <text x="97" y="304" font-size="9" text-anchor="middle" fill="#1f3a5f">WROOM-32</text>
-  <rect x="107" y="454" width="36" height="18" rx="3" fill="#9aa3ad" stroke="#555"/>
-  <text x="125" y="492" font-size="12" text-anchor="middle" fill="#555">USB cable → PC (runs the app)</text>
+  <rect x="40" y="80" width="170" height="260" rx="10" fill="#1f3a5f" stroke="#0f2238" stroke-width="2"/>
+  <rect x="62" y="130" width="70" height="80" rx="4" fill="#c9ced6" stroke="#8a919c"/>
+  <text x="97" y="166" font-size="14" text-anchor="middle" fill="#1f3a5f" font-weight="700">ESP32</text>
+  <text x="97" y="184" font-size="9" text-anchor="middle" fill="#1f3a5f">WROOM-32</text>
+  <rect x="107" y="334" width="36" height="18" rx="3" fill="#9aa3ad" stroke="#555"/>
+  <text x="125" y="372" font-size="12" text-anchor="middle" fill="#555">USB cable → PC (runs the app)</text>
 
   <!-- pin labels -->
   <g font-size="12" fill="#fff" text-anchor="end">
-    <text x="200" y="124">GPIO27</text>
-    <text x="200" y="194">GPIO26</text>
-    <text x="200" y="264">GPIO25</text>
-    <text x="200" y="344">GPIO18</text>
-    <text x="200" y="384">5V / VIN</text>
-    <text x="200" y="424">GND</text>
-  </g>
-
-  <!-- GND rail -->
-  <line x1="210" y1="420" x2="640" y2="420" stroke="#222" stroke-width="2"/>
-  <line x1="640" y1="420" x2="640" y2="120" stroke="#222" stroke-width="2"/>
-
-  <!-- LED rows -->
-  <g stroke-width="2">
-    <line x1="210" y1="120" x2="300" y2="120" stroke="#2e7d32"/>
-    <line x1="210" y1="190" x2="300" y2="190" stroke="#f9a825"/>
-    <line x1="210" y1="260" x2="300" y2="260" stroke="#c62828"/>
-  </g>
-  <g fill="#e8d9b0" stroke="#8a6d2b">
-    <rect x="300" y="112" width="60" height="16" rx="4"/>
-    <rect x="300" y="182" width="60" height="16" rx="4"/>
-    <rect x="300" y="252" width="60" height="16" rx="4"/>
-  </g>
-  <g font-size="11" fill="#555" text-anchor="middle">
-    <text x="330" y="105">220 Ω</text><text x="330" y="175">220 Ω</text><text x="330" y="245">220 Ω</text>
-  </g>
-  <g stroke="#222" stroke-width="2">
-    <line x1="360" y1="120" x2="440" y2="120"/><line x1="476" y1="120" x2="640" y2="120"/>
-    <line x1="360" y1="190" x2="440" y2="190"/><line x1="476" y1="190" x2="640" y2="190"/>
-    <line x1="360" y1="260" x2="440" y2="260"/><line x1="476" y1="260" x2="640" y2="260"/>
-  </g>
-  <circle cx="458" cy="120" r="16" fill="#43a047" stroke="#1b5e20" stroke-width="2"/>
-  <circle cx="458" cy="190" r="16" fill="#fdd835" stroke="#f57f17" stroke-width="2"/>
-  <circle cx="458" cy="260" r="16" fill="#e53935" stroke="#8e0000" stroke-width="2"/>
-  <g font-size="11" fill="#555">
-    <text x="418" y="104">long leg (+)</text>
-    <text x="500" y="112">LED1 (1 person)</text><text x="500" y="182">LED2 (2 people)</text><text x="500" y="252">LED3 (3+ people)</text><text x="480" y="160">short leg (−) → GND</text>
+    <text x="200" y="244">GPIO18</text>
+    <text x="200" y="284">5V / VIN</text>
+    <text x="200" y="314">GND</text>
   </g>
 
   <!-- Relay module -->
-  <rect x="300" y="320" width="150" height="80" rx="6" fill="#1565c0" stroke="#0d47a1" stroke-width="2"/>
-  <text x="375" y="350" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">Relay module</text>
-  <text x="375" y="368" font-size="11" fill="#e3f2fd" text-anchor="middle">5 V, 1 channel</text>
-  <g font-size="10" fill="#fff"><text x="306" y="344">IN</text><text x="306" y="386">VCC</text><text x="306" y="397">GND</text></g>
-  <line x1="210" y1="340" x2="300" y2="340" stroke="#6a1b9a" stroke-width="2"/>
-  <line x1="210" y1="380" x2="300" y2="380" stroke="#d32f2f" stroke-width="2"/>
-  <line x1="290" y1="395" x2="300" y2="395" stroke="#222" stroke-width="2"/>
-  <line x1="290" y1="395" x2="290" y2="420" stroke="#222" stroke-width="2"/>
+  <rect x="300" y="220" width="150" height="100" rx="6" fill="#1565c0" stroke="#0d47a1" stroke-width="2"/>
+  <text x="375" y="262" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">Relay module</text>
+  <text x="375" y="280" font-size="11" fill="#e3f2fd" text-anchor="middle">5 V, 1 channel</text>
+  <g font-size="10" fill="#fff"><text x="306" y="244">IN</text><text x="306" y="290">VCC</text><text x="306" y="314">GND</text></g>
+  <line x1="210" y1="240" x2="300" y2="240" stroke="#6a1b9a" stroke-width="2"/>
+  <line x1="210" y1="280" x2="300" y2="280" stroke="#d32f2f" stroke-width="2"/>
+  <line x1="210" y1="310" x2="300" y2="310" stroke="#222" stroke-width="2"/>
   <g font-size="11" fill="#555">
-    <text x="460" y="324">ON at 3+ people</text><text x="460" y="340">COM / NO → switches your siren, lamp, door lock…</text>
-    <text x="460" y="356">(separate supply; mains wiring only if you know how)</text>
+    <text x="460" y="240">COM / NO → switches your siren, lamp, door lock…</text>
+    <text x="460" y="256">(separate supply; mains wiring only if you know how)</text>
+    <text x="460" y="290">Resets when the relay clicks? Feed relay VCC from a</text>
+    <text x="460" y="306">separate 5 V supply, GND shared with the ESP32.</text>
   </g>
 </svg>
